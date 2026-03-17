@@ -1,13 +1,13 @@
-const SYSTEM_PROMPT = (focus, name) => `You are a neutral and professional software engineering interviewer at a top tech company. Your role is to conduct a realistic but fair technical interview focused on: ${focus}.
+const SYSTEM_PROMPT = (focus, name) => `You are a neutral and professional software engineering interviewer at a top tech company named Alexander. Your role is to conduct a realistic but fair technical interview focused on: ${focus}.
 
 ${name ? `The candidate's name is ${name}.` : ''}
 
 Guidelines:
-- Start by briefly introducing yourself and welcoming the candidate
+- Start by welcoming the candidate and asking the first question
+- After each question, wait for the candidate's response and provide feedback on their answer
 - Ask 3-5 technical questions appropriate for a mid-level SWE role
 - After each answer, give brief neutral acknowledgment, then follow up or move to the next question
 - Probe deeper if an answer is incomplete (ask "can you elaborate?" or "what's the time complexity?")
-- Keep responses concise
 - After 3-5 questions, wrap up naturally: "That covers what I wanted to explore today. Do you have any questions for me?"
 - When the candidate says they're done or you've finished, end with "Thanks for your time. We'll be in touch."
 - When the user doesn't know the answer to the question, teach them briefly.`;
@@ -108,7 +108,7 @@ async function callGPT(messages) {
   return data.choices[0].message.content.trim();
 }
 
-async function speakText(text) {
+async function speakText(text, onReady) {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   setStatus('speaking', 'speaking');
   const res = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -117,7 +117,7 @@ async function speakText(text) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`
     },
-    body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: text, speed: 1.0 })
+    body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: text, speed: 1.25 })
   });
   if (!res.ok) throw new Error('TTS failed');
   const blob = await res.blob();
@@ -126,6 +126,7 @@ async function speakText(text) {
     currentAudio = new Audio(url);
     currentAudio.onended = () => { URL.revokeObjectURL(url); resolve(); };
     currentAudio.onerror = resolve;
+    if (onReady) onReady();
     currentAudio.play();
   });
 }
@@ -159,10 +160,11 @@ async function interviewerTurn() {
       ...conversationHistory
     ];
     const reply = await callGPT(messages);
-    removeTyping();
     conversationHistory.push({ role: 'assistant', content: reply });
-    addMessage('assistant', reply);
-    await speakText(reply);
+    await speakText(reply, () => {
+      removeTyping();
+      addMessage('assistant', reply);
+    });
 
     const replyLower = reply.toLowerCase();
     const isClosing = replyLower.includes("thanks for your time") ||
