@@ -45,7 +45,7 @@ const SYSTEM_PROMPT = (focus, chatType, name) => {
 }
 
 
-const FEEDBACK_PROMPT = (transcript) => {`You evaluated a software engineering interview. Here is the full transcript:
+const FEEDBACK_PROMPT = (transcript) => `You evaluated a software engineering interview. Here is the full transcript:
 
   ${transcript}
 
@@ -58,4 +58,3 @@ const FEEDBACK_PROMPT = (transcript) => {`You evaluated a software engineering i
     "tip": "one concrete actionable tip"
   }
   Return ONLY the JSON, no markdown, no explanation.`;
-}

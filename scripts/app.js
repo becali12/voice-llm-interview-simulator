@@ -69,22 +69,34 @@ function removeTyping() {
 // --- API calls ---
 
 async function callGPT(messages) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const systemMsg = messages.find(m => m.role === 'system');
+  const input = messages
+    .filter(m => m.content != null);  // guard against null content entries
+
+  const body = {
+    model: typeof OPENAI_MODEL === 'string' ? OPENAI_MODEL : 'gpt-5.4-mini',
+    input,
+    max_output_tokens: 400
+  };
+  
+  if (systemMsg) body.instructions = systemMsg.content;
+
+  const res = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`
     },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages,
-      temperature: 0.7,
-      max_tokens: 400
-    })
+    body: JSON.stringify(body)
   });
-  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`OpenAI error ${res.status}: ${err?.error?.message || 'unknown'}`);
+  }
   const data = await res.json();
-  return data.choices[0].message.content.trim();
+  const text = data.output[0].content[0].text.trim()
+
+  return text;
 }
 
 async function speakText(text, onReady) {
@@ -96,7 +108,7 @@ async function speakText(text, onReady) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`
     },
-    body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: text, speed: 1.25 })
+    body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: text, speed: 1.15 })
   });
   if (!res.ok) throw new Error('TTS failed');
   const blob = await res.blob();
