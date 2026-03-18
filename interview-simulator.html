@@ -20,14 +20,15 @@
     </div>
 
     <div class="field">
-      <label>Mode (Interview / Learning)</label>
-      <select id="chat-type">
+      <label>Mode</label>
+      <select id="chat-type" onchange="onModeChange()">
         <option value="interview">Interview</option>
         <option value="learning">Learning</option>
+        <option value="casual-chat">Casual Chat</option>
       </select>
     </div>
 
-    <div class="field">
+    <div class="field" id="focus-field">
       <label>Focus Area</label>
       <select id="focus">
         <option value="python-backend">Python Backend</option>

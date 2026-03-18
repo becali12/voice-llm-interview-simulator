@@ -1,7 +1,12 @@
 // --- State ---
 let apiKey = '';
 let focus = '';
-let chatType = ''; // interview | learning
+let chatType = ''; // interview | learning | casual-chat
+
+function onModeChange() {
+  const mode = document.getElementById('chat-type').value;
+  document.getElementById('focus-field').style.display = mode === 'casual-chat' ? 'none' : '';
+}
 let candidateName = '';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -48,7 +53,7 @@ function addMessage(role, text) {
   msg.innerHTML = `
     <div class="msg-avatar">${initials}</div>
     <div class="msg-body">
-      <div class="msg-role">${isAI ? (chatType === 'learning' ? 'Tutor' : 'Interviewer') : (candidateName || 'You')}</div>
+      <div class="msg-role">${isAI ? (chatType === 'learning' ? 'Tutor' : chatType === 'casual-chat' ? 'Alejandro' : 'Interviewer') : (candidateName || 'You')}</div>
       <div class="msg-text">${isAI ? renderMarkdown(text) : text}</div>
     </div>`;
 
@@ -65,7 +70,7 @@ function showTyping() {
   wrap.innerHTML = `
     <div class="msg-avatar">AI</div>
     <div class="msg-body">
-      <div class="msg-role">${chatType === 'learning' ? 'Tutor' : 'Interviewer'}</div>
+      <div class="msg-role">${chatType === 'learning' ? 'Tutor' : chatType === 'casual-chat' ? 'Alejandro' : 'Interviewer'}</div>
       <div class="typing-indicator"><span></span><span></span><span></span></div>
     </div>`;
   chat.appendChild(wrap);
@@ -335,6 +340,6 @@ function restart() {
   document.getElementById('feedback-screen').querySelectorAll('.fb-card:not(#fb-summary)').forEach(el => el.remove());
   document.getElementById('fb-summary').innerHTML = '<h3>Loading feedback...</h3>';
   document.getElementById('btn-start').disabled = false;
-  document.getElementById('btn-start').textContent = chatType === 'learning' ? 'Start Learning' : 'Start Interview';
+  document.getElementById('btn-start').textContent = chatType === 'learning' ? 'Start Learning' : chatType === 'casual-chat' ? 'Start Chatting' : 'Start Interview';
   document.getElementById('setup-screen').style.display = 'flex';
 }
