@@ -20,15 +20,24 @@
     </div>
 
     <div class="field">
+      <label>Mode (Interview / Learning)</label>
+      <select id="chat-type">
+        <option value="interview">Interview</option>
+        <option value="learning">Learning</option>
+      </select>
+    </div>
+
+    <div class="field">
       <label>Focus Area</label>
       <select id="focus">
-        <option value="general">General Software Engineering</option>
-        <option value="llm-ai-engineer">LLM AI Engineer</option>
+        <option value="python-backend">Python Backend</option>
+        <option value="node-backend">Node.js Backend</option>
+        <option value="typescript-frontend">TypeScript / JS Frontend</option>
+        <option value="fullstack">Full Stack (Python + TypeScript)</option>
+        <option value="devops">DevOps &amp; Infrastructure</option>
+        <option value="llm-ai-engineer">LLM / AI Engineer</option>
         <option value="algorithms">Algorithms &amp; Data Structures</option>
         <option value="system-design">System Design</option>
-        <option value="backend">Backend / APIs</option>
-        <option value="frontend">Frontend Development</option>
-        <option value="fullstack">Full Stack</option>
       </select>
     </div>
 
@@ -42,9 +51,9 @@
       <span>Your key is used only in this browser session and never stored or sent anywhere except directly to OpenAI.</span>
     </div>
 
-    <button class="btn-start" id="btn-start" onclick="startInterview()">
+    <button class="btn-start" id="btn-start" onclick="startSession()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6.5" stroke="white" stroke-opacity="0.5"/><path d="M5.5 5.2a.3.3 0 01.46-.25l3.2 1.8a.3.3 0 010 .5l-3.2 1.8A.3.3 0 015.5 8.8V5.2z" fill="white"/></svg>
-      Start Interview
+      Start Chat
     </button>
   </div>
 </div>
@@ -62,7 +71,7 @@
         <span id="status-text">ready</span>
       </div>
     </div>
-    <button class="btn-end" onclick="endInterview()">End &amp; Review →</button>
+    <button class="btn-end" onclick="endSession()">End &amp; Review →</button>
   </div>
 
   <div id="chat"></div>
@@ -93,7 +102,8 @@
 </div>
 
 <script src="config.js"></script>
-<script src="app.js"></script>
+<script src="scripts/prompts.js"></script>
+<script src="scripts/app.js"></script>
 
 </body>
 </html>

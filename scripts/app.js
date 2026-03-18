@@ -1,42 +1,21 @@
-const SYSTEM_PROMPT = (focus, name) => `You are a neutral and professional software engineering interviewer at a top tech company named Alexander. Your role is to conduct a realistic but fair technical interview focused on: ${focus}.
-
-${name ? `The candidate's name is ${name}.` : ''}
-
-Guidelines:
-- Start by welcoming the candidate and asking the first question
-- After each question, wait for the candidate's response and provide feedback on their answer
-- Ask 3-5 technical questions appropriate for a mid-level SWE role
-- After each answer, give brief neutral acknowledgment, then follow up or move to the next question
-- Probe deeper if an answer is incomplete (ask "can you elaborate?" or "what's the time complexity?")
-- After 3-5 questions, wrap up naturally: "That covers what I wanted to explore today. Do you have any questions for me?"
-- When the candidate says they're done or you've finished, end with "Thanks for your time. We'll be in touch."
-- When the user doesn't know the answer to the question, teach them briefly.`;
-
-const FEEDBACK_PROMPT = (transcript) => `You evaluated a software engineering interview. Here is the full transcript:
-
-${transcript}
-
-Now provide structured feedback as JSON with this exact shape:
-{
-  "overall": "one sentence overall impression",
-  "score": "Strong / Adequate / Needs Work",
-  "strengths": ["point 1", "point 2"],
-  "improvements": ["point 1", "point 2"],
-  "tip": "one concrete actionable tip"
-}
-Return ONLY the JSON, no markdown, no explanation.`;
-
 // --- State ---
 let apiKey = '';
 let focus = '';
+let chatType = ''; // interview | learning
 let candidateName = '';
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (typeof YOUR_NAME === 'string' && YOUR_NAME.trim()) {
+    document.getElementById('candidate-name').value = YOUR_NAME.trim();
+  }
+});
 let conversationHistory = [];
 let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let audioStream = null;
 let currentAudio = null;
-let interviewerBusy = false;
+let aiBusy = false;
 
 // --- UI helpers ---
 
@@ -58,7 +37,7 @@ function addMessage(role, text) {
   msg.innerHTML = `
     <div class="msg-avatar">${initials}</div>
     <div class="msg-body">
-      <div class="msg-role">${isAI ? 'Interviewer' : (candidateName || 'You')}</div>
+      <div class="msg-role">${isAI ? (chatType === 'learning' ? 'Tutor' : 'Interviewer') : (candidateName || 'You')}</div>
       <div class="msg-text">${text}</div>
     </div>`;
 
@@ -75,7 +54,7 @@ function showTyping() {
   wrap.innerHTML = `
     <div class="msg-avatar">AI</div>
     <div class="msg-body">
-      <div class="msg-role">Interviewer</div>
+      <div class="msg-role">${chatType === 'learning' ? 'Tutor' : 'Interviewer'}</div>
       <div class="typing-indicator"><span></span><span></span><span></span></div>
     </div>`;
   chat.appendChild(wrap);
@@ -145,18 +124,18 @@ async function transcribeAudio(blob) {
   return data.text.trim();
 }
 
-// --- Interview flow ---
+// --- Session flow ---
 
-async function interviewerTurn() {
-  interviewerBusy = true;
+async function aiTurn() {
+  aiBusy = true;
   document.getElementById('mic-btn').disabled = true;
-  document.getElementById('ctrl-hint').textContent = 'interviewer thinking...';
+  document.getElementById('ctrl-hint').textContent = 'thinking...';
   setStatus('thinking', 'thinking');
 
   showTyping();
   try {
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT(focus, candidateName) },
+      { role: 'system', content: SYSTEM_PROMPT(focus, chatType, candidateName) },
       ...conversationHistory
     ];
     const reply = await callGPT(messages);
@@ -171,7 +150,7 @@ async function interviewerTurn() {
                       replyLower.includes("we'll be in touch") ||
                       replyLower.includes("we will be in touch");
     if (isClosing) {
-      setTimeout(() => endInterview(), 1200);
+      setTimeout(() => endSession(), 1200);
       return;
     }
   } catch (e) {
@@ -181,12 +160,12 @@ async function interviewerTurn() {
 
   setStatus('idle', 'your turn');
   document.getElementById('mic-btn').disabled = false;
-  document.getElementById('ctrl-hint').textContent = 'hold to speak, release to send';
-  interviewerBusy = false;
+  document.getElementById('ctrl-hint').textContent = 'click to speak, click again to stop recording.';
+  aiBusy = false;
 }
 
 async function toggleRecord() {
-  if (interviewerBusy) return;
+  if (aiBusy) return;
   if (!isRecording) {
     await startRecording();
   } else {
@@ -238,7 +217,7 @@ async function processRecording(blob) {
     }
     conversationHistory.push({ role: 'user', content: text });
     addMessage('user', text);
-    await interviewerTurn();
+    await aiTurn();
   } catch (e) {
     document.getElementById('ctrl-hint').textContent = `Error: ${e.message}`;
     document.getElementById('mic-btn').disabled = false;
@@ -248,13 +227,14 @@ async function processRecording(blob) {
 
 // --- Session management ---
 
-async function startInterview() {
+async function startSession() {
   if (typeof OPENAI_API_KEY !== 'string' || !OPENAI_API_KEY.startsWith('sk-')) {
     alert('No valid API key found. Please add your key to config.js (starts with sk-).');
     return;
   }
   apiKey = OPENAI_API_KEY;
   focus = document.getElementById('focus').value;
+  chatType = document.getElementById('chat-type').value;
   candidateName = document.getElementById('candidate-name').value.trim();
 
   document.getElementById('btn-start').disabled = true;
@@ -264,15 +244,20 @@ async function startInterview() {
   document.getElementById('interview-screen').style.display = 'flex';
 
   conversationHistory = [];
-  await interviewerTurn();
+  await aiTurn();
 }
 
-async function endInterview() {
+async function endSession() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (isRecording) { mediaRecorder.stop(); isRecording = false; }
   if (audioStream) { audioStream.getTracks().forEach(t => t.stop()); audioStream = null; }
 
   document.getElementById('interview-screen').style.display = 'none';
+
+  if (chatType !== 'interview') {
+    document.getElementById('setup-screen').style.display = 'flex';
+    return;
+  }
 
   const fbScreen = document.getElementById('feedback-screen');
   fbScreen.style.display = 'flex';
@@ -327,6 +312,6 @@ function restart() {
   document.getElementById('feedback-screen').querySelectorAll('.fb-card:not(#fb-summary)').forEach(el => el.remove());
   document.getElementById('fb-summary').innerHTML = '<h3>Loading feedback...</h3>';
   document.getElementById('btn-start').disabled = false;
-  document.getElementById('btn-start').textContent = 'Start Interview';
+  document.getElementById('btn-start').textContent = chatType === 'learning' ? 'Start Learning' : 'Start Interview';
   document.getElementById('setup-screen').style.display = 'flex';
 }
