@@ -19,14 +19,20 @@ A browser-based, voice-driven mock interview tool powered by OpenAI. The AI inte
   - `whisper-1` (transcription)
   - `tts-1` (text-to-speech)
 
+## Setup
+
+1. Copy `config.example.js` to `config.js`
+2. Open `config.js` and replace `sk-...` with your actual OpenAI API key
+3. Open `interview-simulator.html` directly in your browser
+
+`config.js` is listed in `.gitignore` and will never be committed.
+
 ## Usage
 
-1. Open `interview-simulator.html` directly in your browser (no server required)
-2. Enter your OpenAI API key
-3. Select a focus area and optionally enter your name
-4. Click **Start Interview**
-5. Click the microphone button to record your answer, click again to stop
-6. The interview ends automatically after 3–5 questions, or manually via **End & Review**
+1. Select a focus area and optionally enter your name
+2. Click **Start Interview**
+3. Click the microphone button to record your answer, click again to stop
+4. The interview ends automatically after 3–5 questions, or manually via **End & Review**
 
 ## Project Structure
 
@@ -34,9 +40,9 @@ A browser-based, voice-driven mock interview tool powered by OpenAI. The AI inte
 interview-simulator.html   # Markup and screen layout
 style.css                  # All styles
 app.js                     # Prompts, state, API calls, interview logic
+config.example.js          # API key template — copy to config.js and add your key
+config.js                  # Your API key (gitignored, not committed)
 ```
-
-## Customisation
 
 | What | Where |
 |---|---|
@@ -48,11 +54,10 @@ app.js                     # Prompts, state, API calls, interview logic
 
 ## Privacy
 
-Your API key is entered in the browser and sent only directly to OpenAI. It is never stored or transmitted elsewhere.
+Your API key lives in `config.js` on your machine and is sent only directly to OpenAI. It is gitignored and never committed or transmitted elsewhere.
 
 ## Coming soon
 
-- better api key management
 - separate interview vs learning modes
 - separate & improved prompts for each interview topics
 - RAG for each interview topic, to add more relevant questions

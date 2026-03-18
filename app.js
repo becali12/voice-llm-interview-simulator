@@ -249,14 +249,13 @@ async function processRecording(blob) {
 // --- Session management ---
 
 async function startInterview() {
-  apiKey = document.getElementById('api-key').value.trim();
-  focus = document.getElementById('focus').value;
-  candidateName = document.getElementById('candidate-name').value.trim();
-
-  if (!apiKey.startsWith('sk-')) {
-    alert('Please enter a valid OpenAI API key (starts with sk-)');
+  if (typeof OPENAI_API_KEY !== 'string' || !OPENAI_API_KEY.startsWith('sk-')) {
+    alert('No valid API key found. Please add your key to config.js (starts with sk-).');
     return;
   }
+  apiKey = OPENAI_API_KEY;
+  focus = document.getElementById('focus').value;
+  candidateName = document.getElementById('candidate-name').value.trim();
 
   document.getElementById('btn-start').disabled = true;
   document.getElementById('btn-start').textContent = 'Starting...';
