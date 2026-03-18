@@ -303,6 +303,11 @@ html, body {
 }
 .msg.ai .msg-text   { border-radius: 2px 8px 8px 8px; }
 .msg.user .msg-text { border-radius: 8px 2px 8px 8px; background: var(--surface2); }
+.msg-text strong { font-weight: 600; }
+.msg-text em { font-style: italic; }
+.msg-text code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: var(--surface2); padding: 1px 5px; border-radius: 3px; }
+.msg-text ul { margin: 6px 0 6px 18px; padding: 0; }
+.msg-text li { margin-bottom: 3px; }
 
 .typing-indicator {
   display: flex;

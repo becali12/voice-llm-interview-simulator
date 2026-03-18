@@ -26,6 +26,17 @@ function setStatus(state, text) {
   label.textContent = text;
 }
 
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // escape HTML first
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')   // **bold**
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')               // *italic*
+    .replace(/`([^`]+)`/g, '<code>$1</code>')           // `inline code`
+    .replace(/^[-•] (.+)/gm, '<li>$1</li>')             // - list items
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')          // wrap list items
+    .replace(/\n/g, '<br>');                            // line breaks
+}
+
 function addMessage(role, text) {
   const chat = document.getElementById('chat');
   const isAI = role === 'assistant';
@@ -38,7 +49,7 @@ function addMessage(role, text) {
     <div class="msg-avatar">${initials}</div>
     <div class="msg-body">
       <div class="msg-role">${isAI ? (chatType === 'learning' ? 'Tutor' : 'Interviewer') : (candidateName || 'You')}</div>
-      <div class="msg-text">${text}</div>
+      <div class="msg-text">${isAI ? renderMarkdown(text) : text}</div>
     </div>`;
 
   chat.appendChild(msg);
@@ -78,7 +89,7 @@ async function callGPT(messages) {
     input,
     max_output_tokens: 400
   };
-  
+
   if (systemMsg) body.instructions = systemMsg.content;
 
   const res = await fetch('https://api.openai.com/v1/responses', {
